@@ -64,8 +64,7 @@
     .site-foot { margin-top: 40px; text-align: center; }
     .skyline {
       display: block; width: 100%; height: 72px; margin: 0 auto;   /* 72: the tallest a bar can stand; centered when whole bars leave a sliver spare */
-      image-rendering: pixelated;
-      filter: drop-shadow(0 0 6px var(--magenta));           /* 6: the same soft glow the logo wears */
+      image-rendering: pixelated;                            /* no glow on the strip itself: a glow would bleed into the gaps and melt the bars together */
     }
     .horizon { height: 2px; margin: 0 0 24px; background: var(--magenta); box-shadow: 0 0 12px var(--magenta); }   /* the line the skyline stands on */
     .mark { display: inline-flex; margin-bottom: 14px; }
@@ -75,7 +74,6 @@
     .mark i:nth-child(3) { background: var(--mark-c); }
     .welcome { margin: 0 0 6px; font-family: var(--pixel); font-size: 1.05rem; letter-spacing: 0.04em; color: var(--cream); text-shadow: 0 0 10px var(--magenta); text-wrap: balance; }
     .fine { margin: 0; color: var(--soft); font-size: 0.8rem; }
-    @media (prefers-reduced-motion: reduce) { .skyline { filter: none; } }
   </style>
 </head>
 <body>
@@ -132,8 +130,8 @@
     const pen = canvas && typeof canvas.getContext === 'function' ? canvas.getContext('2d') : null;
     if (!pen || !player) { return; }                           // no canvas: the footer still reads without its light
 
-    const PITCH = 5;                                           // CSS pixels from one bar to the next
-    const BAR = 3;                                             // CSS pixels wide each bar is: two dark pixels between bars, so every bar stands alone
+    const BAR = 3;                                             // CSS pixels wide each bar is
+    const GAP = 3;                                             // CSS pixels of dark between bars, and never less than one real screen pixel, so every bar stands alone
     const TALL = 72;                                           // CSS pixels from the horizon to the top of the strip, matching the canvas's height in the CSS
     const FLAT = 2;                                            // CSS pixels every bar keeps when nothing plays: the flat line
     const CAP = 2;                                             // CSS pixels of white burning at the top of a bar that is moving, like the logo's core
@@ -156,20 +154,25 @@
 
     let columns = 0;
     let heights = new Float32Array(0);                         // each bar's height now, 0 to 1 of the strip
-    let ratio = 1;
+    let ratio = 1;                                             // screen pixels per CSS pixel, as the screen really is: 1.25 or 1.5 on a scaled Windows display, 3 on a phone
+    let barPx = BAR;                                           // the bar, the gap and the flat line in real screen pixels, worked out in fit()
+    let gapPx = GAP;
     let analyser = null;
     let bins = null;
     let rate = 48000;                                          // the audio's sample rate in hertz; the real one is read once the song is hooked up
     let bands = null;                                          // for each bar, the first and last bin it averages, spaced by octaves like a real EQ
 
-    // ---- size: whole bars, whole device pixels ----
+    // ---- size: one canvas pixel to one screen pixel, so a gap is never smeared shut by scaling ----
     const fit = () => {
-      ratio = Math.max(1, Math.round(window.devicePixelRatio || 1));
-      const width = canvas.clientWidth || 1;
-      columns = Math.max(1, Math.floor((width + PITCH - BAR) / PITCH));   // as many whole bars as fit, the last one without a gap after it
-      canvas.width = ((columns - 1) * PITCH + BAR) * ratio;
-      canvas.height = TALL * ratio;
-      canvas.style.width = ((columns - 1) * PITCH + BAR) + 'px';
+      ratio = window.devicePixelRatio > 0 ? window.devicePixelRatio : 1;
+      barPx = Math.max(1, Math.round(BAR * ratio));
+      gapPx = Math.max(1, Math.round(GAP * ratio));
+      const room = Math.floor((canvas.parentElement ? canvas.parentElement.clientWidth : canvas.clientWidth || 1) * ratio);   // the footer's width in screen pixels
+      columns = Math.max(1, Math.floor((room + gapPx) / (barPx + gapPx)));   // as many whole bars as fit, the last one without a gap after it
+      canvas.width = columns * (barPx + gapPx) - gapPx;
+      canvas.height = Math.round(TALL * ratio);
+      canvas.style.width = (canvas.width / ratio) + 'px';     // shown at exactly its own pixels: the browser never resamples it
+      canvas.style.height = (canvas.height / ratio) + 'px';
       const kept = heights;
       heights = new Float32Array(columns);
       heights.set(kept.subarray(0, Math.min(kept.length, columns)));
@@ -224,11 +227,11 @@
         analyser.getByteFrequencyData(bins);                  // the spectrum, read once a frame
         if (!bands || bands.length !== columns) { bands = bandsFor(); }
       }
-      const step = PITCH * ratio;                             // in device pixels, so every bar lands on whole pixels
-      const wide = BAR * ratio;
-      const full = TALL * ratio;
-      const flat = FLAT * ratio;
-      const cap = CAP * ratio;
+      const step = barPx + gapPx;                             // all in real screen pixels, so every bar and every gap lands on whole pixels
+      const wide = barPx;
+      const full = canvas.height;
+      const flat = Math.max(1, Math.round(FLAT * ratio));
+      const cap = Math.max(1, Math.round(CAP * ratio));
       let moving = false;
       pen.clearRect(0, 0, canvas.width, canvas.height);
       for (let column = 0; column < columns; column += 1) {
