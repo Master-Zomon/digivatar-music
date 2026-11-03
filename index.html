@@ -139,9 +139,9 @@
     const FFT_SIZE = 2048;                                     // 1024 frequency bins, about 23 Hz apart at 48 kHz: fine enough to give the bass its own bars
     const LOW_HZ = 40;                                         // the strip starts at the kick drum's floor,
     const HIGH_HZ = 16000;                                     // and ends where the air on the cymbals runs out
-    const MIN_DB = -100;                                       // quieter than this reads as an empty bar,
-    const MAX_DB = -25;                                        // and only this loud lights a bar to the top, so a full mix still leaves headroom
-    const CURVE = 1.25;                                        // above 1 pulls the middle down a little, so the beat stands up out of the mix instead of a flat wall
+    const MIN_DB = -95;                                        // quieter than this reads as an empty bar,
+    const MAX_DB = -14;                                        // and only this loud lights a bar to the top: a full mix keeps headroom, only the hits touch the ceiling
+    const CURVE = 1.4;                                         // above 1 pulls the middle down, so the beat stands up out of the mix instead of a flat wall
     const TILT = 0.9;                                          // highs carry less energy than lows: lift the right end by up to 90%, the way a studio analyzer tilts
     const SMOOTHING = 0.7;                                     // the analyser's own smoothing, so the bars move like light, not noise
     const token = (name, fallback) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
