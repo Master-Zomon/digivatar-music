@@ -3,16 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Deejavatarea · Digivatar</title>
-  <meta name="description" content="Deejavatarea by Digivatar. Listen, download, and use it in your own creative work with credit (CC BY 4.0).">
-  <meta property="og:title" content="Deejavatarea · Digivatar">
+  <title>Digivatarea · Digivatar</title>
+  <meta name="description" content="Digivatarea by Digivatar. Listen, download, and use it in your own creative work with credit (CC BY 4.0).">
+  <meta property="og:title" content="Digivatarea · Digivatar">
   <meta property="og:description" content="Listen and download. Free to use with credit. CC BY 4.0.">
+  <meta property="og:image" content="https://master-zomon.github.io/digivatar-music/digivatar_logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&family=IBM+Plex+Mono:wght@400;600&display=swap">
   <style>
     /* ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  C O L O R S  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-       Deep navy, cream, one green for the action. */
+       Deep navy night, the logo's magenta glow, one green for the action. */
     :root {
       --ground: #0A0916;           /* the night behind everything */
       --glass: #13142F;            /* the card the song sits on */
@@ -20,19 +21,27 @@
       --cream: #E9E4CF;            /* the title */
       --green: #3FD08A;            /* the download button and links */
       --soft: #9A9BB5;             /* quiet text */
+      --magenta: #FF2BD6;          /* the logo's glow: the footer's light */
       --pink: #FF006F;             /* focus rings */
+      --mark-a: #F8A300;           /* Digivatar's three squares, left to right */
+      --mark-b: #00F8D2;
+      --mark-c: #F80069;
       --pixel: "Silkscreen", "IBM Plex Mono", ui-monospace, monospace;
       --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
     }
 
     /* ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  P A G E  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-       The song, centered, nothing else in the way. */
+       Logo, song, footer, in one column down the middle. */
     * { box-sizing: border-box; }
     html, body { margin: 0; min-height: 100%; background: var(--ground); color: var(--cream); }
     body { display: grid; place-items: center; min-height: 100vh; font-family: var(--mono); font-size: 16px; line-height: 1.6; }
     main { width: 100%; max-width: 560px; padding: 32px 16px; }   /* 560: a player wide enough to scrub easily; 16: the phone gutter */
     a { color: var(--green); }
     a:focus-visible { outline: 2px solid var(--pink); outline-offset: 3px; }
+
+    /* ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  L O G O  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+       The Digivatar tag, glowing above the song. */
+    .logo { display: block; width: 100%; max-width: 360px; height: auto; margin: 0 auto 16px; }   /* 360: the tag reads at a glance without crowding the card */
 
     /* ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  S O N G  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
        Listen, then take it. */
@@ -49,19 +58,47 @@
     }
     .download:hover { filter: brightness(1.1); }
     .credit { margin: 16px 0 0; color: var(--soft); font-size: 0.85rem; }
+
+    /* ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  F O O T E R  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+       A pixel skyline of light that dances to the song while it plays and breathes while it rests. Then the mark and the welcome. */
+    .site-foot { margin-top: 40px; text-align: center; }
+    .skyline {
+      display: block; width: 100%; height: 72px; margin: 0 auto;   /* 72: twelve rows of six-pixel cells; centered when whole cells leave a sliver spare */
+      image-rendering: pixelated;
+      filter: drop-shadow(0 0 6px var(--magenta));           /* 6: the same soft glow the logo wears */
+    }
+    .horizon { height: 2px; margin: 0 0 24px; background: var(--magenta); box-shadow: 0 0 12px var(--magenta); }   /* the line the skyline stands on */
+    .mark { display: inline-flex; margin-bottom: 14px; }
+    .mark i { display: block; width: 12px; height: 12px; }   /* 12: the signature's squares, small and exact */
+    .mark i:nth-child(1) { background: var(--mark-a); }
+    .mark i:nth-child(2) { background: var(--mark-b); }
+    .mark i:nth-child(3) { background: var(--mark-c); }
+    .welcome { margin: 0 0 6px; font-family: var(--pixel); font-size: 1.05rem; letter-spacing: 0.04em; color: var(--cream); text-shadow: 0 0 10px var(--magenta); text-wrap: balance; }
+    .fine { margin: 0; color: var(--soft); font-size: 0.8rem; }
+    @media (prefers-reduced-motion: reduce) { .skyline { filter: none; } }
   </style>
 </head>
 <body>
   <main>
+    <img class="logo" src="digivatar_logo.png" width="730" height="443" alt="Digivatar">
+
     <section class="song" aria-labelledby="song-title">
-      <h1 id="song-title">Deejavatarea</h1>
+      <h1 id="song-title">Digivatarea</h1>
       <p class="artist">Digivatar</p>
-      <audio id="player" controls preload="metadata" src="digivatar_deejavatarea.mp3">
+      <audio id="player" controls preload="metadata" src="digivatar_digivatarea.mp3">
         Your browser can't play this here. Use the download button below.
       </audio>
-      <a class="download" id="download" href="digivatar_deejavatarea.mp3" download="Digivatar - Deejavatarea.mp3">Download MP3</a>
-      <p class="credit">Free to use in your own work. Credit: "Deejavatarea" by Digivatar, <a href="https://creativecommons.org/licenses/by/4.0/" rel="license noopener" target="_blank">CC BY 4.0</a>.</p>
+      <a class="download" id="download" href="digivatar_digivatarea.mp3" download="Digivatar - Digivatarea.mp3">Download MP3</a>
+      <p class="credit">Free to use in your own work. Credit: "Digivatarea" by Digivatar, <a href="https://creativecommons.org/licenses/by/4.0/" rel="license noopener" target="_blank">CC BY 4.0</a>.</p>
     </section>
+
+    <footer class="site-foot">
+      <canvas class="skyline" id="skyline" aria-hidden="true"></canvas>
+      <div class="horizon" aria-hidden="true"></div>
+      <div class="mark" aria-hidden="true"><i></i><i></i><i></i></div>
+      <p class="welcome">Welcome to Digivatarea, land of the creative heart.</p>
+      <p class="fine">© <span id="year">2026</span> Digivatar · Music free to use under CC&nbsp;BY&nbsp;4.0</p>
+    </footer>
   </main>
 
   <script>
@@ -71,18 +108,125 @@
     // ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  S I G N A T U R E  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
     //
     //   Digivatar · free music
-    //   One song to play and download, free to use under CC BY 4.0.
-    //   Built for Alexander Mora (Digivatar) · 2026-11-02 · Deejavatarea
+    //   One song to play and download, free to use under CC BY 4.0, under the Digivatar tag, with a footer that dances to it.
+    //   Built for Alexander Mora (Digivatar) · 2026-11-02 · Digivatarea · logo and pixel skyline footer added
     //
+
+    const player = document.getElementById('player');
+    const download = document.getElementById('download');
+    const canvas = document.getElementById('skyline');
+    const yearSpot = document.getElementById('year');
 
     // ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  F A L L B A C K  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
     // If the player cannot load the file, say so and point to the download, so nobody is left with a dead player.
-    const player = document.getElementById('player');
-    const download = document.getElementById('download');
-    if (!player || !download) { return; }                     // a piece of the page is missing: the plain link still works
-    player.addEventListener('error', () => {
-      download.textContent = 'Download MP3 (the player could not load it)';
-    });
+    if (player && download) {
+      player.addEventListener('error', () => {
+        download.textContent = 'Download MP3 (the player could not load it)';
+      });
+    }
+    if (yearSpot) { yearSpot.textContent = String(new Date().getFullYear()); }   // the copyright year keeps itself current
+
+    // ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  S K Y L I N E  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+    // Columns of pixel light along the horizon. While the song plays they are its real spectrum, low notes on the left.
+    // While it rests they breathe slowly, each column on its own swell, so the footer is never dead.
+    const pen = canvas && typeof canvas.getContext === 'function' ? canvas.getContext('2d') : null;
+    if (!pen || !player) { return; }                           // no canvas: the footer still reads without its light
+
+    const CELL = 6;                                            // CSS pixels from one cell to the next
+    const DOT = 5;                                             // CSS pixels lit in each cell: one dark pixel between, like an LED board
+    const ROWS = 12;                                           // cells from the horizon to the top of the strip
+    const REST_FPS = 15;                                       // frames a second while resting: enough to breathe, easy on the battery
+    const FALL = 0.06;                                         // share of the strip a column can drop per frame: up fast, down slow, the way a meter falls
+    const LOWEST_BIN = 2;                                      // the analyser's first bins are mostly rumble: start a little above them
+    const HIGH_SHARE = 0.7;                                    // use the lower 70% of the analyser's range, where the music lives
+    const colors = {                                           // read from the page's own tokens, with fallbacks if a token is missing
+      body: getComputedStyle(document.documentElement).getPropertyValue('--magenta').trim() || '#FF2BD6',
+      peak: getComputedStyle(document.documentElement).getPropertyValue('--cream').trim() || '#E9E4CF',
+      ghost: 'rgba(255, 43, 214, 0.12)',                       // an unlit cell: a faint trace of the magenta
+    };
+    const reduceMotion = Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+    let columns = 0;
+    let heights = new Float32Array(0);                         // each column's height now, 0 to 1
+    let ratio = 1;
+    const fit = () => {                                        // size the canvas to its box in whole device pixels, so every cell is sharp
+      ratio = Math.max(1, Math.round(window.devicePixelRatio || 1));
+      const width = canvas.clientWidth || 1;
+      columns = Math.max(1, Math.floor(width / CELL));
+      canvas.width = columns * CELL * ratio;
+      canvas.height = ROWS * CELL * ratio;
+      canvas.style.width = (columns * CELL) + 'px';
+      const kept = heights;
+      heights = new Float32Array(columns);
+      heights.set(kept.subarray(0, Math.min(kept.length, columns)));
+    };
+
+    // The song's own spectrum, set up the first time it plays (a browser only allows sound to start from a tap).
+    let analyser = null;
+    let bins = null;
+    const listen = () => {
+      if (analyser) { return; }
+      const Context = window.AudioContext || window.webkitAudioContext;
+      if (!Context) { return; }                                // no Web Audio: the skyline keeps breathing instead
+      try {
+        const context = new Context();
+        const source = context.createMediaElementSource(player);
+        analyser = context.createAnalyser();
+        analyser.fftSize = 256;                                // 128 bins: plenty for a strip this size
+        analyser.smoothingTimeConstant = 0.75;                 // a little smoothing, so the columns move like light, not noise
+        source.connect(analyser);
+        analyser.connect(context.destination);
+        bins = new Uint8Array(analyser.frequencyBinCount);
+        if (context.state === 'suspended') { context.resume().catch(() => {}); }
+      } catch (error) {
+        analyser = null;                                       // could not hook the player: the song still plays, the skyline breathes
+      }
+    };
+    player.addEventListener('play', listen);
+
+    const target = (column, time) => {                         // how tall a column wants to be right now, 0 to 1
+      if (analyser && bins && !player.paused) {
+        analyser.getByteFrequencyData(bins);
+        const span = Math.floor(bins.length * HIGH_SHARE) - LOWEST_BIN;
+        const at = LOWEST_BIN + Math.floor((column / columns) * span);
+        return bins[at] / 255;                                 // 255: the loudest a bin can read
+      }
+      const swell = 0.5 + 0.5 * Math.sin(time * 0.9 + column * 0.45);   // 0.9: one slow breath every seven seconds; 0.45: the wave travels along the strip
+      const ripple = 0.5 + 0.5 * Math.sin(time * 2.3 - column * 0.8);   // a quicker, smaller ripple running the other way
+      return 0.12 + 0.28 * swell * swell + 0.12 * ripple;     // resting skyline: low, never flat
+    };
+
+    const draw = (time) => {
+      pen.clearRect(0, 0, canvas.width, canvas.height);
+      const unit = CELL * ratio;
+      const lit = DOT * ratio;
+      for (let column = 0; column < columns; column += 1) {
+        const wanted = Math.min(1, Math.max(0, target(column, time)));
+        heights[column] = wanted > heights[column] ? wanted : Math.max(wanted, heights[column] - FALL);
+        const cells = Math.round(heights[column] * ROWS);
+        for (let row = 0; row < ROWS; row += 1) {
+          const y = (ROWS - 1 - row) * unit;
+          pen.fillStyle = row < cells ? (row === cells - 1 ? colors.peak : colors.body) : colors.ghost;   // the top lit cell burns white, like the logo's core
+          pen.fillRect(column * unit, y, lit, lit);
+        }
+      }
+    };
+
+    // One clock. Full speed while the song plays, a slow breath while it rests, a single still frame for anyone who asked for less motion.
+    let last = 0;
+    const tick = (now) => {
+      const playing = Boolean(analyser) && !player.paused;
+      if (playing || now - last >= 1000 / REST_FPS) {
+        last = now;
+        draw(now / 1000);
+      }
+      window.requestAnimationFrame(tick);
+    };
+
+    fit();
+    window.addEventListener('resize', fit);
+    if (reduceMotion) { draw(0); return; }                     // still: one resting frame, no animation
+    window.requestAnimationFrame(tick);
   })();
   </script>
 </body>

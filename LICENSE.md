@@ -1,6 +1,6 @@
 # License
 
-"Deejavatarea" by Digivatar (the file `digivatar_deejavatarea.mp3`) is licensed under the
+"Digivatarea" by Digivatar (the file `digivatar_digivatarea.mp3`) is licensed under the
 **Creative Commons Attribution 4.0 International License (CC BY 4.0)**.
 
 You are free to:
@@ -11,7 +11,7 @@ You are free to:
 Under the following terms:
 
 - **Attribution:** you must give appropriate credit, provide a link to the license, and indicate if changes were made.
-  Suggested credit: `Music: "Deejavatarea" by Digivatar — CC BY 4.0 — https://creativecommons.org/licenses/by/4.0/`
+  Suggested credit: `Music: "Digivatarea" by Digivatar — CC BY 4.0 — https://creativecommons.org/licenses/by/4.0/`
 
 Full legal code: https://creativecommons.org/licenses/by/4.0/legalcode
 

@@ -2,10 +2,10 @@
 
 Music by **Digivatar**, free for anyone to use in creative work.
 
-## Deejavatarea
+## Digivatarea
 
 - Listen and download: https://master-zomon.github.io/digivatar-music/
-- Direct MP3: https://master-zomon.github.io/digivatar-music/digivatar_deejavatarea.mp3
+- Direct MP3: https://master-zomon.github.io/digivatar-music/digivatar_digivatarea.mp3
 - 3:48 · MP3 · 48 kHz stereo
 
 ## Use it
@@ -15,7 +15,7 @@ Use it in your videos, games, streams, animations, art and anything else you mak
 Paste this where your credits go:
 
 ```
-Music: "Deejavatarea" by Digivatar — CC BY 4.0 — https://creativecommons.org/licenses/by/4.0/
+Music: "Digivatarea" by Digivatar — CC BY 4.0 — https://creativecommons.org/licenses/by/4.0/
 ```
 
 ## License
