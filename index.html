@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Deejavatarea · Digivatar</title>
+  <meta name="description" content="Deejavatarea by Digivatar. Listen, download, and use it in your own creative work with credit (CC BY 4.0).">
+  <meta property="og:title" content="Deejavatarea · Digivatar">
+  <meta property="og:description" content="Listen and download. Free to use with credit. CC BY 4.0.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen&family=IBM+Plex+Mono:wght@400;600&display=swap">
+  <style>
+    /* ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  C O L O R S  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+       Deep navy, cream, one green for the action. */
+    :root {
+      --ground: #0A0916;           /* the night behind everything */
+      --glass: #13142F;            /* the card the song sits on */
+      --edge: #2A2A55;             /* the card's hairline */
+      --cream: #E9E4CF;            /* the title */
+      --green: #3FD08A;            /* the download button and links */
+      --soft: #9A9BB5;             /* quiet text */
+      --pink: #FF006F;             /* focus rings */
+      --pixel: "Silkscreen", "IBM Plex Mono", ui-monospace, monospace;
+      --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    }
+
+    /* ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  P A G E  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+       The song, centered, nothing else in the way. */
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--ground); color: var(--cream); }
+    body { display: grid; place-items: center; min-height: 100vh; font-family: var(--mono); font-size: 16px; line-height: 1.6; }
+    main { width: 100%; max-width: 560px; padding: 32px 16px; }   /* 560: a player wide enough to scrub easily; 16: the phone gutter */
+    a { color: var(--green); }
+    a:focus-visible { outline: 2px solid var(--pink); outline-offset: 3px; }
+
+    /* ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  S O N G  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+       Listen, then take it. */
+    .song { padding: 24px 20px; background: var(--glass); border: 1px solid var(--edge); }
+    .song h1 { margin: 0; font-family: var(--pixel); font-weight: 400; font-size: 1.8rem; line-height: 1.2; }
+    .artist { margin: 4px 0 20px; color: var(--soft); }
+    audio { display: block; width: 100%; margin-bottom: 16px; }
+    .download {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 48px;                                      /* 48: a comfortable thumb target on a phone */
+      font: 600 1rem var(--mono);
+      text-decoration: none;
+      color: var(--ground); background: var(--green);
+    }
+    .download:hover { filter: brightness(1.1); }
+    .credit { margin: 16px 0 0; color: var(--soft); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="song" aria-labelledby="song-title">
+      <h1 id="song-title">Deejavatarea</h1>
+      <p class="artist">Digivatar</p>
+      <audio id="player" controls preload="metadata" src="digivatar_deejavatarea.mp3">
+        Your browser can't play this here. Use the download button below.
+      </audio>
+      <a class="download" id="download" href="digivatar_deejavatarea.mp3" download="Digivatar - Deejavatarea.mp3">Download MP3</a>
+      <p class="credit">Free to use in your own work. Credit: "Deejavatarea" by Digivatar, <a href="https://creativecommons.org/licenses/by/4.0/" rel="license noopener" target="_blank">CC BY 4.0</a>.</p>
+    </section>
+  </main>
+
+  <script>
+  (() => {
+    'use strict';
+
+    // ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  S I G N A T U R E  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+    //
+    //   Digivatar · free music
+    //   One song to play and download, free to use under CC BY 4.0.
+    //   Built for Alexander Mora (Digivatar) · 2026-11-02 · Deejavatarea
+    //
+
+    // ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  F A L L B A C K  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+    // If the player cannot load the file, say so and point to the download, so nobody is left with a dead player.
+    const player = document.getElementById('player');
+    const download = document.getElementById('download');
+    if (!player || !download) { return; }                     // a piece of the page is missing: the plain link still works
+    player.addEventListener('error', () => {
+      download.textContent = 'Download MP3 (the player could not load it)';
+    });
+  })();
+  </script>
+</body>
+</html>
