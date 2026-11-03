@@ -60,10 +60,10 @@
     .credit { margin: 16px 0 0; color: var(--soft); font-size: 0.85rem; }
 
     /* ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  F O O T E R  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-       A pixel skyline of light that dances to the song while it plays and breathes while it rests. Then the mark and the welcome. */
+       A skyline of separate light bars that dances to the song while it plays and lies flat when it stops. Then the mark and the welcome. */
     .site-foot { margin-top: 40px; text-align: center; }
     .skyline {
-      display: block; width: 100%; height: 72px; margin: 0 auto;   /* 72: twelve rows of six-pixel cells; centered when whole cells leave a sliver spare */
+      display: block; width: 100%; height: 72px; margin: 0 auto;   /* 72: the tallest a bar can stand; centered when whole bars leave a sliver spare */
       image-rendering: pixelated;
       filter: drop-shadow(0 0 6px var(--magenta));           /* 6: the same soft glow the logo wears */
     }
@@ -127,106 +127,144 @@
     if (yearSpot) { yearSpot.textContent = String(new Date().getFullYear()); }   // the copyright year keeps itself current
 
     // ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  S K Y L I N E  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-    // Columns of pixel light along the horizon. While the song plays they are its real spectrum, low notes on the left.
-    // While it rests they breathe slowly, each column on its own swell, so the footer is never dead.
+    // Separate bars of light along the horizon. While the song plays they are its real spectrum, low notes on the left.
+    // When it stops they fall back to a flat line and wait.
     const pen = canvas && typeof canvas.getContext === 'function' ? canvas.getContext('2d') : null;
     if (!pen || !player) { return; }                           // no canvas: the footer still reads without its light
 
-    const CELL = 6;                                            // CSS pixels from one cell to the next
-    const DOT = 5;                                             // CSS pixels lit in each cell: one dark pixel between, like an LED board
-    const ROWS = 12;                                           // cells from the horizon to the top of the strip
-    const REST_FPS = 15;                                       // frames a second while resting: enough to breathe, easy on the battery
-    const FALL = 0.06;                                         // share of the strip a column can drop per frame: up fast, down slow, the way a meter falls
-    const LOWEST_BIN = 2;                                      // the analyser's first bins are mostly rumble: start a little above them
-    const HIGH_SHARE = 0.7;                                    // use the lower 70% of the analyser's range, where the music lives
+    const PITCH = 5;                                           // CSS pixels from one bar to the next
+    const BAR = 3;                                             // CSS pixels wide each bar is: two dark pixels between bars, so every bar stands alone
+    const TALL = 72;                                           // CSS pixels from the horizon to the top of the strip, matching the canvas's height in the CSS
+    const FLAT = 2;                                            // CSS pixels every bar keeps when nothing plays: the flat line
+    const CAP = 2;                                             // CSS pixels of white burning at the top of a bar that is moving, like the logo's core
+    const FALL = 0.06;                                         // share of the strip a bar can drop per frame: up fast, down slow, the way a meter falls
+    const FFT_SIZE = 2048;                                     // 1024 frequency bins, about 23 Hz apart at 48 kHz: fine enough to give the bass its own bars
+    const LOW_HZ = 40;                                         // the strip starts at the kick drum's floor,
+    const HIGH_HZ = 16000;                                     // and ends where the air on the cymbals runs out
+    const MIN_DB = -100;                                       // quieter than this reads as an empty bar,
+    const MAX_DB = -25;                                        // and only this loud lights a bar to the top, so a full mix still leaves headroom
+    const CURVE = 1.25;                                        // above 1 pulls the middle down a little, so the beat stands up out of the mix instead of a flat wall
+    const TILT = 0.9;                                          // highs carry less energy than lows: lift the right end by up to 90%, the way a studio analyzer tilts
+    const SMOOTHING = 0.7;                                     // the analyser's own smoothing, so the bars move like light, not noise
+    const token = (name, fallback) => getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
     const colors = {                                           // read from the page's own tokens, with fallbacks if a token is missing
-      body: getComputedStyle(document.documentElement).getPropertyValue('--magenta').trim() || '#FF2BD6',
-      peak: getComputedStyle(document.documentElement).getPropertyValue('--cream').trim() || '#E9E4CF',
-      ghost: 'rgba(255, 43, 214, 0.12)',                       // an unlit cell: a faint trace of the magenta
+      body: token('--magenta', '#FF2BD6'),
+      peak: token('--cream', '#E9E4CF'),
+      ghost: 'rgba(255, 43, 214, 0.1)',                        // the unlit length of a bar: a faint trace of the magenta, so the instrument shows at rest
     };
     const reduceMotion = Boolean(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
     let columns = 0;
-    let heights = new Float32Array(0);                         // each column's height now, 0 to 1
+    let heights = new Float32Array(0);                         // each bar's height now, 0 to 1 of the strip
     let ratio = 1;
-    const fit = () => {                                        // size the canvas to its box in whole device pixels, so every cell is sharp
+    let analyser = null;
+    let bins = null;
+    let rate = 48000;                                          // the audio's sample rate in hertz; the real one is read once the song is hooked up
+    let bands = null;                                          // for each bar, the first and last bin it averages, spaced by octaves like a real EQ
+
+    // ---- size: whole bars, whole device pixels ----
+    const fit = () => {
       ratio = Math.max(1, Math.round(window.devicePixelRatio || 1));
       const width = canvas.clientWidth || 1;
-      columns = Math.max(1, Math.floor(width / CELL));
-      canvas.width = columns * CELL * ratio;
-      canvas.height = ROWS * CELL * ratio;
-      canvas.style.width = (columns * CELL) + 'px';
+      columns = Math.max(1, Math.floor((width + PITCH - BAR) / PITCH));   // as many whole bars as fit, the last one without a gap after it
+      canvas.width = ((columns - 1) * PITCH + BAR) * ratio;
+      canvas.height = TALL * ratio;
+      canvas.style.width = ((columns - 1) * PITCH + BAR) + 'px';
       const kept = heights;
       heights = new Float32Array(columns);
       heights.set(kept.subarray(0, Math.min(kept.length, columns)));
+      bands = null;                                            // the bars changed: their frequency ranges are worked out again
+      draw();
     };
 
-    // The song's own spectrum, set up the first time it plays (a browser only allows sound to start from a tap).
-    let analyser = null;
-    let bins = null;
+    // ---- the song's spectrum, hooked up the first time it plays (a browser only allows sound to start from a tap) ----
+    const bandsFor = () => {
+      const hzPerBin = rate / 2 / bins.length;
+      const octaves = Math.log2(HIGH_HZ / LOW_HZ);
+      return Array.from({ length: columns }, (unused, column) => {
+        const from = LOW_HZ * Math.pow(2, octaves * column / columns);
+        const to = LOW_HZ * Math.pow(2, octaves * (column + 1) / columns);
+        const first = Math.min(bins.length - 1, Math.floor(from / hzPerBin));
+        return [first, Math.max(first, Math.min(bins.length - 1, Math.floor(to / hzPerBin)))];
+      });
+    };
     const listen = () => {
-      if (analyser) { return; }
+      if (analyser || reduceMotion) { return; }                // already listening, or asked for no motion: the line stays flat
       const Context = window.AudioContext || window.webkitAudioContext;
-      if (!Context) { return; }                                // no Web Audio: the skyline keeps breathing instead
+      if (!Context) { return; }                                // no Web Audio: the song plays, the line stays flat
       try {
         const context = new Context();
         const source = context.createMediaElementSource(player);
         analyser = context.createAnalyser();
-        analyser.fftSize = 256;                                // 128 bins: plenty for a strip this size
-        analyser.smoothingTimeConstant = 0.75;                 // a little smoothing, so the columns move like light, not noise
+        analyser.fftSize = FFT_SIZE;
+        analyser.minDecibels = MIN_DB;
+        analyser.maxDecibels = MAX_DB;
+        analyser.smoothingTimeConstant = SMOOTHING;
+        rate = context.sampleRate || rate;
         source.connect(analyser);
         analyser.connect(context.destination);
         bins = new Uint8Array(analyser.frequencyBinCount);
         if (context.state === 'suspended') { context.resume().catch(() => {}); }
       } catch (error) {
-        analyser = null;                                       // could not hook the player: the song still plays, the skyline breathes
+        analyser = null;                                       // could not hook the player: the song still plays, the line stays flat
       }
     };
-    player.addEventListener('play', listen);
 
-    const target = (column, time) => {                         // how tall a column wants to be right now, 0 to 1
-      if (analyser && bins && !player.paused) {
-        analyser.getByteFrequencyData(bins);
-        const span = Math.floor(bins.length * HIGH_SHARE) - LOWEST_BIN;
-        const at = LOWEST_BIN + Math.floor((column / columns) * span);
-        return bins[at] / 255;                                 // 255: the loudest a bin can read
-      }
-      const swell = 0.5 + 0.5 * Math.sin(time * 0.9 + column * 0.45);   // 0.9: one slow breath every seven seconds; 0.45: the wave travels along the strip
-      const ripple = 0.5 + 0.5 * Math.sin(time * 2.3 - column * 0.8);   // a quicker, smaller ripple running the other way
-      return 0.12 + 0.28 * swell * swell + 0.12 * ripple;     // resting skyline: low, never flat
+    // ---- one frame ----
+    const levelOf = (column) => {                              // how tall a bar wants to be right now, 0 to 1
+      const [first, last] = bands[column];
+      let sum = 0;
+      for (let bin = first; bin <= last; bin += 1) { sum += bins[bin]; }
+      const level = sum / (last - first + 1) / 255;           // 255: the loudest a bin can read
+      return Math.min(1, Math.pow(level, CURVE) * (1 + TILT * column / columns));
     };
-
-    const draw = (time) => {
+    const draw = () => {
+      const live = Boolean(analyser && bins) && !player.paused;
+      if (live) {
+        analyser.getByteFrequencyData(bins);                  // the spectrum, read once a frame
+        if (!bands || bands.length !== columns) { bands = bandsFor(); }
+      }
+      const step = PITCH * ratio;                             // in device pixels, so every bar lands on whole pixels
+      const wide = BAR * ratio;
+      const full = TALL * ratio;
+      const flat = FLAT * ratio;
+      const cap = CAP * ratio;
+      let moving = false;
       pen.clearRect(0, 0, canvas.width, canvas.height);
-      const unit = CELL * ratio;
-      const lit = DOT * ratio;
       for (let column = 0; column < columns; column += 1) {
-        const wanted = Math.min(1, Math.max(0, target(column, time)));
+        const wanted = live ? levelOf(column) : 0;
         heights[column] = wanted > heights[column] ? wanted : Math.max(wanted, heights[column] - FALL);
-        const cells = Math.round(heights[column] * ROWS);
-        for (let row = 0; row < ROWS; row += 1) {
-          const y = (ROWS - 1 - row) * unit;
-          pen.fillStyle = row < cells ? (row === cells - 1 ? colors.peak : colors.body) : colors.ghost;   // the top lit cell burns white, like the logo's core
-          pen.fillRect(column * unit, y, lit, lit);
+        if (heights[column] > 0) { moving = true; }           // still on its way down to the line: keep drawing
+        const height = Math.max(flat, Math.round(heights[column] * full));   // whole device pixels, and never below the flat line
+        const x = column * step;
+        pen.fillStyle = colors.ghost;
+        pen.fillRect(x, 0, wide, full - height);
+        pen.fillStyle = colors.body;
+        pen.fillRect(x, full - height, wide, height);
+        if (height > flat + cap) {                             // only a bar that has risen gets its white tip
+          pen.fillStyle = colors.peak;
+          pen.fillRect(x, full - height, wide, cap);
         }
       }
+      return live || moving;                                   // whether another frame is needed
     };
 
-    // One clock. Full speed while the song plays, a slow breath while it rests, a single still frame for anyone who asked for less motion.
-    let last = 0;
-    const tick = (now) => {
-      const playing = Boolean(analyser) && !player.paused;
-      if (playing || now - last >= 1000 / REST_FPS) {
-        last = now;
-        draw(now / 1000);
-      }
+    // ---- the clock: runs while the song plays and while the bars fall back, then rests ----
+    let running = false;
+    const tick = () => {
+      if (draw()) { window.requestAnimationFrame(tick); return; }
+      running = false;
+    };
+    const wake = () => {
+      if (running) { return; }
+      running = true;
       window.requestAnimationFrame(tick);
     };
-
-    fit();
+    player.addEventListener('play', () => { listen(); wake(); });
+    player.addEventListener('pause', wake);                   // let the bars fall to the line
+    player.addEventListener('ended', wake);
     window.addEventListener('resize', fit);
-    if (reduceMotion) { draw(0); return; }                     // still: one resting frame, no animation
-    window.requestAnimationFrame(tick);
+    fit();
   })();
   </script>
 </body>
